@@ -1,0 +1,60 @@
+{
+  "ct_quizze_20__008038": {
+    "clinical_text": "Title:Quiz 63323\n\n\npresentation:Patient with a history of meningeal haemangioperictyoma 5 years ago.\n\n\npatient:Age:40 years\nGender:Female",
+    "options": {
+      "A": "Metastatic meningeal hemangiopericytoma (solitary fibrous tumor/hemangiopericytoma)",
+      "B": "Metastatic meningeal atypical meningioma (anaplastic meningioma)",
+      "C": "Metastatic paraganglioma (glomus jugulare paraganglioma)",
+      "D": "Metastatic renal cell carcinoma (clear cell renal cell carcinoma)",
+      "E": "Metastatic follicular thyroid carcinoma (hypervascular metastases)"
+    },
+    "correct_answer": "Metastatic meningeal hemangiopericytoma (solitary fibrous tumor/hemangiopericytoma)",
+    "correct_letter": "A",
+    "image_folders": [
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_C__portal_venous_phase",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_bone_window"
+    ],
+    "image_paths": [
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_C__portal_venous_phase/0.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_C__portal_venous_phase/1.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_C__portal_venous_phase/2.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_C__portal_venous_phase/3.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_C__portal_venous_phase/4.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_C__portal_venous_phase/5.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_C__portal_venous_phase/6.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_C__portal_venous_phase/7.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_C__portal_venous_phase/8.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_C__portal_venous_phase/9.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_C__portal_venous_phase/10.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_C__portal_venous_phase/11.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_bone_window/0.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_bone_window/1.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_bone_window/2.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_bone_window/3.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_bone_window/4.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_bone_window/5.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_bone_window/6.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_bone_window/7.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_bone_window/8.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_bone_window/9.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_bone_window/10.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_bone_window/11.png",
+      "/project/pi_hongyu_umass_edu/zonghai/3d-images/data/raw/ct_case/ct_quizze_20/008038/Axial_bone_window/12.png"
+    ],
+    "image_stats": {
+      "folders": {
+        "Axial_C__portal_venous_phase": {
+          "total": 12,
+          "sampled": 12
+        },
+        "Axial_bone_window": {
+          "total": 13,
+          "sampled": 13
+        }
+      },
+      "total_sampled": 25,
+      "final_count": 25,
+      "byte_capped": false
+    }
+  }
+}

@@ -1,0 +1,19 @@
+# Credentials
+.env
+
+# Pipeline outputs — large; excluded from git
+results/
+output/
+logs/
+data/
+
+# Example inputs/outputs are intentionally committed
+!input/
+!examples/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
