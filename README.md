@@ -10,21 +10,46 @@ Each case is presented to **6 model configurations** (3 models × 2 reasoning ef
 
 ```
 CT-MCQ/
-├── .env.example         ← copy to .env and fill in your API keys
+├── .env.example                 ← copy to .env and fill in your API keys
 ├── .gitignore
 ├── README.md
 ├── requirements.txt
-└── scripts/
-    └── exam_pipeline.py ← main pipeline
+├── input/
+│   └── question_example.json    ← 1-case ready-to-run example (questions format)
+├── scripts/
+│   └── exam_pipeline.py         ← main pipeline
+└── examples/
+    └── output/                  ← reference output produced by the example input
+        ├── gpt54nano_none.json
+        └── all_exam_results.json
 ```
 
-> **`results/`**, **`logs/`**, and **`data/`** are created at runtime and excluded from git.
+> `logs/`, `results/`, and `output/` are created at runtime and excluded from git.
+
+---
+
+## Quick Start
+
+```bash
+# 1. Install dependencies
+pip install -r requirements.txt
+
+# 2. Configure API keys
+cp .env.example .env
+# Edit .env and add your OPENAI_API_KEY
+
+# 3. Run the bundled 1-case example (smallest/cheapest config)
+python scripts/exam_pipeline.py --configs gpt54nano_none
+```
+
+With no input arguments the pipeline uses `input/question_example.json` and writes to `examples/output/`. You should get the same answer/output structure as the committed reference files.
 
 ---
 
 ## Requirements
 
 - Python **3.9+**
+- See `requirements.txt`
 
 ```bash
 pip install -r requirements.txt
@@ -34,13 +59,11 @@ pip install -r requirements.txt
 
 ## Environment Setup
 
-Copy the example and fill in your keys:
+The pipeline reads `.env` from the **repository root** (`CT-MCQ/.env`).
 
 ```bash
 cp .env.example .env
 ```
-
-The pipeline reads `.env` from the **repository root** (`CT-MCQ/.env`).
 
 ```ini
 # .env
@@ -58,36 +81,60 @@ LANGFUSE_HOST=https://cloud.langfuse.com
 
 ## Input
 
-### Sampled cases file (`--input`, required)
+The pipeline accepts **two input formats**, controlled by which CLI flag you pass.
 
-Pass a `sampled_*.json` file via `--input`. **There is no usable default** — this must always be specified.
+### Option A — Pre-built questions (`--questions-file`)
 
-**Expected JSON schema:**
+This is the format used by the bundled example. Image paths are already resolved to individual PNG files.
+
+```jsonc
+{
+  "<case_key>": {
+    "clinical_text": "Title:...\n\npresentation:...\n\npatient:Age:40 years\nGender:Female",
+    "options": {
+      "A": "Diagnosis A", "B": "Diagnosis B", "C": "Diagnosis C",
+      "D": "Diagnosis D", "E": "Diagnosis E"
+    },
+    "correct_answer": "Diagnosis A",
+    "correct_letter": "A",
+    "image_folders": [
+      "/abs/path/to/ct_case/ct_quizze_XX/CASE_ID/Axial_portal_venous",
+      "/abs/path/to/ct_case/ct_quizze_XX/CASE_ID/Axial_bone_window"
+    ],
+    "image_paths": [
+      "/abs/path/to/.../Axial_portal_venous/0.png",
+      "/abs/path/to/.../Axial_portal_venous/2.png"
+      // ... already-sampled, ready-to-encode list of PNG files
+    ],
+    "image_stats": {
+      "folders": { "Axial_portal_venous": { "total": 12, "sampled": 12 } },
+      "total_sampled": 25, "final_count": 25, "byte_capped": false
+    }
+  }
+}
+```
+
+See [`input/question_example.json`](input/question_example.json) for a complete real example.
+
+### Option B — Sampled cases (`--input`)
+
+Raw output from a sampling step. The pipeline builds questions on the fly (shuffles options, samples up to 85 PNGs per folder, applies a 38 MB encoded-byte cap).
 
 ```jsonc
 {
   "total_sampled": 800,
-  "sampling_criteria": { ... },   // metadata, not read by the pipeline
+  "sampling_criteria": { ... },
   "cases": {
     "<case_key>": {
-
       "text": "Title:...\n\npresentation:...\n\ndiscussion:...",
-      // The pipeline extracts everything BEFORE the first "discussion:" marker
-      // as the clinical text sent to the model. Everything after is the answer
-      // key and is never sent.
+      // The pipeline extracts everything BEFORE the first "discussion:" marker as
+      // the clinical text. Everything after is the answer key and is never sent.
 
       "image_folders": [
-        "/absolute/path/to/ct_case/ct_quizze_XX/CASE_ID/Axial_portal_venous",
-        "/absolute/path/to/ct_case/ct_quizze_XX/CASE_ID/Axial_bone_window"
+        "/abs/path/to/ct_case/ct_quizze_XX/CASE_ID/Axial_portal_venous"
       ],
-      // Each entry is a folder of sequentially numbered PNG slice files
-      // (0.png, 1.png, …). Paths must be absolute and accessible on the
-      // machine running the pipeline.
-      //
-      // The pipeline uniformly samples up to 85 slices per folder, then
-      // applies a 38 MB encoded-byte cap across all folders for the case.
-      // If image_paths are pre-resolved (e.g. via build_exam_questions.py),
-      // they are reused as-is.
+      // Each folder contains numbered PNG slice files (0.png, 1.png, …).
+      // Paths must be absolute and accessible on the machine running the pipeline.
 
       "differential_diagnosis": {
         "identified_final_diagnosis": "Correct diagnosis name",
@@ -103,17 +150,7 @@ Pass a `sampled_*.json` file via `--input`. **There is no usable default** — t
 
 ### Image files
 
-The paths inside `image_folders` must point to actual directories on disk. If the `sampled_*.json` was produced on a different machine, update the absolute paths before running.
-
-### Pre-built questions file (`--questions-file`, optional)
-
-If you have already resolved image paths with `build_exam_questions.py`, pass the result directly to skip the image-resolution step:
-
-```bash
-python scripts/exam_pipeline.py \
-    --questions-file /path/to/questions_800.json \
-    --output-dir     /path/to/results/exam_800
-```
+`image_folders` (and `image_paths` if pre-resolved) must point to **actual files on disk**. If the JSON was produced on another machine, update the absolute paths before running.
 
 ---
 
@@ -122,42 +159,45 @@ python scripts/exam_pipeline.py \
 All commands are run from the **repository root** (`CT-MCQ/`).
 
 ```bash
-# Run all 9 configs
+# Bundled example — no arguments needed
+python scripts/exam_pipeline.py --configs gpt54nano_none
+
+# Pre-built questions file + custom output dir
+python scripts/exam_pipeline.py \
+    --questions-file /path/to/questions_800.json \
+    --output-dir     results/exam_800
+
+# Raw sampled JSON (the pipeline builds questions automatically)
 python scripts/exam_pipeline.py \
     --input      /path/to/sampled_800.json \
     --output-dir results/exam_800
 
-# Dry run — validates setup without making API calls
+# Dry run — validates setup without making any API calls
 python scripts/exam_pipeline.py \
     --input      /path/to/sampled_800.json \
     --output-dir results/exam_800 \
     --dry-run
 
-# Run only specific model configs
-python scripts/exam_pipeline.py \
-    --input      /path/to/sampled_800.json \
-    --output-dir results/exam_800 \
-    --configs gpt54_low gpt54mini_none gpt54nano_medium
-
-# Use a pre-built questions file (skips image path resolution)
+# Run only specific configs
 python scripts/exam_pipeline.py \
     --questions-file /path/to/questions_800.json \
-    --output-dir     results/exam_800
+    --output-dir     results/exam_800 \
+    --configs gpt54_medium gpt54mini_none gpt54nano_medium
 ```
 
 ### CLI Reference
 
-| Argument | Required | Default | Description |
-|---|---|---|---|
-| `--input PATH` | Yes* | — | Path to `sampled_*.json`. Absolute or relative to repo root. |
-| `--output-dir PATH` | Yes* | `results/exam/` | Directory where all output files are written. Created automatically. |
-| `--questions-file PATH` | No | — | Pre-built questions JSON. Skips question building entirely. |
-| `--configs KEY …` | No | all 9 | Run only the listed config keys. |
-| `--concurrency N` | No | `16` | Max simultaneous API calls in flight. |
-| `--seed N` | No | `42` | Random seed for option shuffling. Changing it reassigns which letter is correct. |
-| `--dry-run` | No | off | Build questions and plan the run, skip all API calls. |
+| Argument | Default | Description |
+|---|---|---|
+| `--questions-file PATH` | `input/question_example.json` | Pre-built questions JSON. Loaded as-is. |
+| `--input PATH` | — | Raw sampled JSON. Pipeline builds questions from it. Mutually exclusive with `--questions-file`. |
+| `--output-dir PATH` | `examples/output/` | Where all output files are written. Created automatically. |
+| `--configs KEY …` | all 6 | Run only the listed config keys. |
+| `--concurrency N` | `16` | Max simultaneous API calls in flight. |
+| `--seed N` | `42` | Random seed for option shuffling (only matters for `--input` mode). |
+| `--dry-run` | off | Build questions and plan the run, skip all API calls. |
 
-*Not required when `--questions-file` is given, but strongly recommended to always set `--output-dir`.
+> If neither `--input` nor `--questions-file` is given, the bundled example at `input/question_example.json` is used.
 
 **Valid config keys** (for `--configs`):
 
@@ -171,47 +211,21 @@ gpt54nano_none   gpt54nano_medium
 
 ## Output
 
-All files are written to `--output-dir`. The directory is created if it does not exist.
+All files are written to `--output-dir` (default `examples/output/`).
 
 ```
 <output-dir>/
-├── questions.json          # MCQ set built from --input (cached; reused on resume)
-├── gpt54_none.json         # Results for each of the 6 model configurations
+├── questions.json          # MCQ set the pipeline used (cached for resume)
+├── gpt54_none.json         # One file per requested model configuration
 ├── gpt54_medium.json
 ├── gpt54mini_none.json
 ├── gpt54mini_medium.json
 ├── gpt54nano_none.json
 ├── gpt54nano_medium.json
-└── all_exam_results.json   # Accuracy summary across all configs
+└── all_exam_results.json   # Accuracy summary across all run configs
 ```
 
-### `questions.json`
-
-Built once and shared across all 9 configs. Includes resolved image paths.
-
-```jsonc
-{
-  "<case_key>": {
-    "clinical_text": "...",        // text before "discussion:" — what the model sees
-    "options": {                   // A–E shuffled from correct answer + top-4 DDx
-      "A": "Diagnosis name",
-      "B": "...", "C": "...", "D": "...", "E": "..."
-    },
-    "correct_answer": "Diagnosis name",
-    "correct_letter": "B",        // letter assigned to the correct answer after shuffle
-    "image_folders": ["..."],     // original folder paths from sampled JSON
-    "image_paths": ["..."],       // resolved individual PNG paths (after sampling + byte cap)
-    "image_stats": {
-      "folders": {
-        "Axial_portal_venous": { "total": 42, "sampled": 42 }
-      },
-      "total_sampled": 85,
-      "final_count": 79,
-      "byte_capped": false
-    }
-  }
-}
-```
+A reference output of running `--configs gpt54nano_none` against the bundled example is committed at [`examples/output/`](examples/output/).
 
 ### `<config_key>.json`
 
@@ -258,9 +272,9 @@ One entry per case. Checkpointed after every batch — safe to interrupt and res
 {
   "total_questions": 800,
   "results": {
-    "gpt54_none":   { "model": "gpt-5.4", "effort": "none",   "correct": 512, "total": 800, "accuracy": 0.64 },
-    "gpt54_low":    { "model": "gpt-5.4", "effort": "low",    "correct": 548, "total": 800, "accuracy": 0.685 },
-    ...
+    "gpt54_none":     { "model": "gpt-5.4",      "effort": "none",   "correct": 512, "total": 800, "accuracy": 0.64 },
+    "gpt54_medium":   { "model": "gpt-5.4",      "effort": "medium", "correct": 612, "total": 800, "accuracy": 0.765 },
+    "gpt54mini_none": { "model": "gpt-5.4-mini", "effort": "none",   "correct": 480, "total": 800, "accuracy": 0.60 }
   }
 }
 ```
@@ -291,9 +305,12 @@ Logs are written to `CT-MCQ/logs/exam_pipeline.log` and streamed to stdout simul
 
 ## Langfuse Tracing (Optional)
 
-If `LANGFUSE_SECRET_KEY` and `LANGFUSE_PUBLIC_KEY` are set in `.env`, the pipeline enables span tracing automatically:
+If both `LANGFUSE_SECRET_KEY` and `LANGFUSE_PUBLIC_KEY` are set in `.env`, the pipeline enables tracing automatically:
 
-- One **Trace** per model configuration (e.g. `exam-gpt54_low`)
-- One **Span** per case nested inside its config trace
+- One **trace** per model configuration (e.g. `exam-gpt54_medium`)
+- One **span** per case nested inside its config trace
+- Each span carries model / effort / image-count metadata and ends with `is_correct` / `difficulty` / `confidence` as output
 
-Leave both keys empty (or unset) to disable tracing entirely — this has no effect on pipeline behavior.
+Leave the keys empty (or unset) to disable tracing — this has zero effect on pipeline behavior.
+
+> Requires `langfuse>=4.0`. The pipeline uses the v4 OpenTelemetry-style `start_observation` API.
